@@ -1,47 +1,29 @@
+// Simple dashboard navigation for movie browser
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the movie functionality
+    if (typeof window.initMovies === 'function') {
+        window.initMovies();
+    }
+    
+    // Handle sidebar navigation (though we only have one section now)
     const sidebarLinks = document.querySelectorAll('.sidebar-link');
     const contentSections = document.querySelectorAll('.content-section');
-    const tripTabs = document.querySelectorAll('.trip-tab');
-    const tripTabContents = document.querySelectorAll('.trip-tab-content');
-
-    const showSection = (targetId) => {
-        contentSections.forEach(section => {
-            section.classList.toggle('active', section.id === targetId);
-        });
-        sidebarLinks.forEach(link => {
-            link.classList.toggle('active', link.dataset.target === targetId);
-        });
-    };
-
+    
     sidebarLinks.forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
-            const targetId = this.dataset.target;
-            showSection(targetId);
+            
+            // Remove active class from all links and sections
+            sidebarLinks.forEach(l => l.classList.remove('active'));
+            contentSections.forEach(s => s.classList.remove('active'));
+            
+            // Add active class to clicked link and corresponding section
+            this.classList.add('active');
+            const targetId = this.getAttribute('data-target');
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
         });
     });
-
-    // --- Trip Planner Tab Logic ---
-    tripTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const target = tab.dataset.tab;
-            
-            tripTabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            tripTabContents.forEach(content => {
-                content.classList.toggle('hidden', content.id !== `${target}-tab-content`);
-            });
-        });
-    });
-
-    // Initialize the dashboard
-    showSection('movie-search'); // Default section
-    document.querySelector('.trip-tab[data-tab="booking"]').classList.add('active'); // Default trip tab
-    
-    // Initialize all feature modules
-    if (typeof window.initMovies === 'function') window.initMovies();
-    if (typeof window.initSmsBlaster === 'function') window.initSmsBlaster();
-    if (typeof window.initTripPlanner === 'function') window.initTripPlanner();
-    if (typeof window.initQrPayment === 'function') window.initQrPayment();
 });
