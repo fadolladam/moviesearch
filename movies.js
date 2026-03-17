@@ -16,7 +16,7 @@ window.initMovies = function() {
     const pagination = document.getElementById('pagination');
     const movieModal = document.getElementById('movieModal');
     const modalContent = document.getElementById('modalContent');
-    const YTS_API_BASE_URL = 'https://yts.mx/api/v2/';
+    const YTS_API_BASE_URL = 'https://movies-api.accel.li/api/v2/';
     let ytsCurrentPage = 1;
     let ytsCurrentQuery = '';
     let ytsCurrentQuality = 'all';
@@ -76,7 +76,7 @@ window.initMovies = function() {
             const movieCard = `
                 <div class="group bg-white rounded-lg overflow-hidden shadow-lg cursor-pointer transform hover:-translate-y-2 transition-transform duration-300" onclick="movieApp.showMovieDetails(${movie.id})">
                     <div class="relative">
-                        <img src="${movie.medium_cover_image}" alt="${movie.title}" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/300x450/e5e7eb/9ca3af?text=No+Image';">
+                        <img src="${movie.large_cover_image}" alt="${movie.title}" class="w-full h-auto object-cover" referrerpolicy="no-referrer" onerror="movieApp.handleImageError(this, '${movie.imdb_code}')">
                         <div class="absolute inset-0 movie-card-overlay flex flex-col justify-end p-4">
                             <h3 class="text-white font-bold text-lg truncate">${movie.title}</h3>
                             <p class="text-gray-300 text-sm">${movie.year}</p>
@@ -139,19 +139,19 @@ window.initMovies = function() {
     function renderModalContent(movie) {
         const trailerHtml = movie.yt_trailer_code ? `<div class="mb-6"><h3 class="text-2xl font-semibold mb-4 text-white">Trailer</h3><div class="aspect-w-16 rounded-lg overflow-hidden"><iframe src="https://www.youtube.com/embed/${movie.yt_trailer_code}?autoplay=0&rel=0" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div></div>` : '';
         const torrentsHtml = movie.torrents.map(torrent => {
-            const magnetLink = `magnet:?xt=urn:btih:${torrent.hash}&dn=${encodeURIComponent(movie.title_long)}&tr=udp://open.demonii.com:1337/announce&tr=udp://tracker.openbittorrent.com:80&tr=udp://tracker.coppersurfer.tk:6969&tr=udp://glotorrents.pw:6969/announce`;
+            const magnetLink = `magnet:?xt=urn:btih:${torrent.hash}&dn=${encodeURIComponent(movie.title_long)}&tr=udp://tracker.opentrackr.org:1337/announce&tr=udp://tracker.torrent.eu.org:451/announce&tr=udp://tracker.dler.org:6969/announce&tr=udp://open.stealth.si:80/announce&tr=udp://open.demonii.com:1337/announce&tr=https://tracker.moeblog.cn:443/announce&tr=udp://open.dstud.io:6969/announce&tr=udp://tracker.srv00.com:6969/announce&tr=https://tracker.zhuqiy.com:443/announce&tr=https://tracker.pmman.tech:443/announce`;
             return `<a href="${magnetLink}" target="_blank" class="block sm:inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-200 mr-2 mb-2">${torrent.quality} <span class="font-normal text-indigo-200">(${torrent.type})</span> - ${torrent.size}</a>`;
         }).join('');
         
         const subtitleSearchLink = `https://yifysubtitles.ch/movie-imdb/${movie.imdb_code}`;
         
-        const castHtml = movie.cast ? movie.cast.map(actor => `<div class="text-center"><img src="${actor.url_small_image}" alt="${actor.name}" class="w-24 h-24 rounded-full mx-auto object-cover mb-2 border-2 border-gray-600" onerror="this.onerror=null;this.src='https://placehold.co/96x96/4b5563/ffffff?text=${actor.name.charAt(0)}';"><p class="font-semibold">${actor.name}</p><p class="text-sm text-gray-400">${actor.character_name}</p></div>`).join('') : '<p>Not available.</p>';
+        const castHtml = movie.cast ? movie.cast.map(actor => `<div class="text-center"><img src="${actor.url_small_image}" alt="${actor.name}" class="w-24 h-24 rounded-full mx-auto object-cover mb-2 border-2 border-gray-600" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://placehold.co/96x96/4b5563/ffffff?text=${actor.name.charAt(0)}';"><p class="font-semibold">${actor.name}</p><p class="text-sm text-gray-400">${actor.character_name}</p></div>`).join('') : '<p>Not available.</p>';
         
         modalContent.innerHTML = `
             <button onclick="movieApp.closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
             <div class="p-6 md:p-8"><div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-1">
-                    <img src="${movie.large_cover_image}" alt="${movie.title}" class="rounded-lg shadow-lg w-full mb-6" onerror="this.onerror=null;this.src='https://placehold.co/400x600/1f2937/ffffff?text=No+Image';">
+                    <img src="${movie.large_cover_image}" alt="${movie.title}" class="rounded-lg shadow-lg w-full mb-6" referrerpolicy="no-referrer" onerror="movieApp.handleImageError(this, '${movie.imdb_code}')">
                     <h3 class="text-xl font-semibold mb-3 text-white">Downloads</h3><div class="flex flex-wrap items-center mb-4">${torrentsHtml}</div>
                     <h3 class="text-xl font-semibold mb-3 text-white">Subtitles</h3><a href="${subtitleSearchLink}" target="_blank" class="inline-block w-full text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200">Search for Subtitles</a>
                 </div>
@@ -172,6 +172,34 @@ window.initMovies = function() {
         `;
     }
     
+    async function handleImageError(img, imdbId) {
+        if (img.dataset.triedFallback) return; 
+        img.dataset.triedFallback = 'true';
+        
+        if (!imdbId || imdbId === '0' || imdbId === '') {
+             img.src = 'https://placehold.co/300x450/e5e7eb/9ca3af?text=No+Image';
+             return;
+        }
+
+        try {
+            const url = `https://api.themoviedb.org/3/find/${imdbId}?api_key=${TMDB_API_KEY}&external_source=imdb_id`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.movie_results && data.movie_results.length > 0 && data.movie_results[0].poster_path) {
+                img.src = `https://image.tmdb.org/t/p/w500${data.movie_results[0].poster_path}`;
+            } else if (data.tv_results && data.tv_results.length > 0 && data.tv_results[0].poster_path) {
+                img.src = `https://image.tmdb.org/t/p/w500${data.tv_results[0].poster_path}`;
+            } else {
+                img.src = 'https://placehold.co/300x450/e5e7eb/9ca3af?text=No+Image';
+            }
+        } catch (error) {
+            console.error('TMDB Image Fallback error:', error);
+            img.src = 'https://placehold.co/300x450/e5e7eb/9ca3af?text=No+Image';
+        }
+    }
+    movieApp.handleImageError = handleImageError;
+
     function closeModal() {
         modalContent.classList.remove('modal-enter-active');
         modalContent.classList.add('modal-leave-active');
@@ -239,13 +267,13 @@ window.initMovies = function() {
             `;
 
             const card = `
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col cursor-pointer transition-transform hover:scale-[1.02]" onclick="${searchYTSLinkAction}">
                     <img src="https://image.tmdb.org/t/p/w500${item.poster_path}" alt="${title}" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/500x750/e5e7eb/9ca3af?text=No+Image';">
                     <div class="p-4 flex flex-col flex-grow text-gray-800">
                         <h3 class="font-bold text-lg truncate">${title}</h3>
                         <p class="text-sm text-gray-500">Release: ${releaseDate}</p>
                         <p class="text-sm text-gray-500 mb-3">Rating: ${item.vote_average.toFixed(1)}/10</p>
-                        <button onclick="${searchYTSLinkAction}" class="mt-auto w-full text-center bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-3 rounded-md transition-colors duration-200 text-sm">Search on YTS</button>
+                        <button class="mt-auto w-full text-center bg-teal-600 hover:bg-teal-700 text-white font-semibold py-2 px-3 rounded-md transition-colors duration-200 text-sm">Search on YTS</button>
                     </div>
                 </div>
             `;
